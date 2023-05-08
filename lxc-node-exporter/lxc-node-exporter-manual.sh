@@ -1,14 +1,22 @@
 #!/bin/bash
 
-# Ask for the specific LXC container ID
-echo "Enter the LXC container ID:"
-read -r container
+# Prompt the user for the container ID
+read -p "Enter the container ID: " container
+
 
 echo "Updating and checking prerequisites on container $container..."
 
+# Get the latest Node Exporter version from GitHub
+LATEST_VERSION=$(curl -s https://api.github.com/repos/prometheus/node_exporter/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+
 # Check if Node Exporter is already installed in the container
 if pct exec $container -- stat -c '%A' /usr/local/bin/node_exporter 2>/dev/null | grep -q 'x'; then
-  echo "Node Exporter is already installed. Do you want to replace it with the latest version? (Y/N)"
+  # Get the installed version from the container
+  INSTALLED_VERSION=$(pct exec $container -- ls /usr/local/bin | grep -oP "node_exporter-\Kv[0-9.]+")
+
+  echo "Node Exporter is already installed (version $INSTALLED_VERSION)."
+  echo "The latest version on GitHub is $LATEST_VERSION."
+  echo "Do you want to update to the latest version? (Y/N)"
   read -r yn
   case $yn in
     [Yy]* ) ;;
@@ -43,6 +51,13 @@ fi
 
 # Download the latest release of Node Exporter for amd64 from GitHub
 DOWNLOAD_URL=\$(curl -s https://api.github.com/repos/prometheus/node_exporter/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4)
+
+# Remove the old version file, if it exists
+rm -f /usr/local/bin/node_exporter-v*
+
+# Create a file without an extension that has the version in its name
+touch "/usr/local/bin/node_exporter-$LATEST_VERSION"
+
 wget \$DOWNLOAD_URL -O /tmp/node_exporter.tar.gz
 
 # Extract the Node Exporter binary
