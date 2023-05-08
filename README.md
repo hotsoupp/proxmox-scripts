@@ -24,3 +24,4 @@ Contributions to this repository are welcome and encouraged! If you have a scrip
 This repository is licensed under the MIT license. See the LICENSE file for more information.
 
 
+https://github.com/hotsoupp/proxmox-scripts/tree/main/lxc-node-exporter
