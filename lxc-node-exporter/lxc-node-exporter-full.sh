@@ -29,64 +29,72 @@ do
     esac
   fi
 
-  # Execute multiple commands within a single pct invocation using a heredoc
-  pct exec $container /bin/bash <<EOF
-  # Determine whether the container is running Debian or Ubuntu
-  . /etc/os-release
-  if [[ "\$ID" == "debian" || "\$ID" == "ubuntu" ]]; then
-    # Update the container
-    apt-get update && apt-get upgrade -y
+# Execute multiple commands within a single pct invocation using a heredoc
+pct exec $container /bin/bash <<EOF
+# Determine whether the container is running Debian or Ubuntu
+. /etc/os-release
+if [[ "\$ID" == "debian" || "\$ID" == "ubuntu" ]]; then
+  # Update the container
+  apt-get update && apt-get upgrade -y
 
-    # Check if curl is installed, and install it if it's not
-    if ! command -v curl > /dev/null 2>&1; then
-      echo "Installing curl..."
-      apt-get install -y curl
-    fi
-  else
-    echo "Unsupported distribution. Skipping container $container."
-    exit 1
+  # Check if curl is installed, and install it if it's not
+  if ! command -v curl > /dev/null 2>&1; then
+    echo "Installing curl..."
+    apt-get install -y curl
   fi
+else
+  echo "Unsupported distribution. Skipping container $container."
+  exit 1
+fi
 
-  # Check if the prometheus user exists, and create it if it doesn't
-  if ! id prometheus > /dev/null 2>&1; then
-    echo "Creating prometheus user..."
-    useradd --no-create-home --shell /bin/false prometheus
-  fi
+# Check if the prometheus user exists, and create it if it doesn't
+if ! id prometheus > /dev/null 2>&1; then
+  echo "Creating prometheus user..."
+  useradd --no-create-home --shell /bin/false prometheus
+fi
 
-  # Download the latest release of Node Exporter for amd64 from GitHub
-  DOWNLOAD_URL=\$(curl -s https://api.github.com/repos/prometheus/node_exporter/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4)
-  wget \$DOWNLOAD_URL -O /tmp/node_exporter.tar.gz
+# Download the latest release of Node Exporter for amd64 from GitHub
+DOWNLOAD_URL=\$(curl -s https://api.github.com/repos/prometheus/node_exporter/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4)
 
-  # Extract the Node Exporter binary
-  tar xzf /tmp/node_exporter.tar.gz --strip-components=1 -C /tmp
+# Remove the old version file, if it exists
+rm -f /usr/local/bin/node_exporter-v*
 
-  # Copy the Node Exporter binary
-  mv /tmp/node_exporter /usr/local/bin/node_exporter
+# Create a file without an extension that has the version in its name
+touch "/usr/local/bin/node_exporter-$LATEST_VERSION"
 
-  # Set the owner of the Node Exporter binary to prometheus:prometheus
-  chown prometheus:prometheus /usr/local/bin/node_exporter
+wget \$DOWNLOAD_URL -O /tmp/node_exporter.tar.gz
 
-  # Create a systemd service for Node Exporter
-  cat > /etc/systemd/system/node_exporter.service <<EOFS
-  [Unit]
-  Description=Node Exporter
-  After=network.target
+# Extract the Node Exporter binary
+tar xzf /tmp/node_exporter.tar.gz --strip-components=1 -C /tmp
 
-  [Service]
-  User=prometheus
-  Group=prometheus
-  ExecStart=/usr/local/bin/node_exporter
+# Copy the Node Exporter binary
+mv /tmp/node_exporter /usr/local/bin/node_exporter
 
-  [Install]
-  WantedBy=multi-user.target
+# Set the owner of the Node Exporter binary to prometheus:prometheus
+chown prometheus:prometheus /usr/local/bin/node_exporter
+
+# Create a systemd service for Node Exporter
+cat > /etc/systemd/system/node_exporter.service <<EOFS
+[Unit]
+Description=Node Exporter
+After=network.target
+
+[Service]
+User=prometheus
+Group=prometheus
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target
 EOFS
 
-  # Reload systemd and start Node Exporter
-  systemctl daemon-reload
-  systemctl restart node_exporter
-  systemctl enable node_exporter
+# Reload systemd and start Node Exporter
+systemctl daemon-reload
+systemctl restart node_exporter
+systemctl enable node_exporter
 
-  echo "Prometheus Node Exporter installed or updated."
+echo "Prometheus Node Exporter installed or updated."
+EOFetheus Node Exporter installed or updated."
 EOF
 
   echo "Container $container has been updated."
