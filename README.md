@@ -6,8 +6,8 @@ Welcome to Proxmox-Scripts! This repository is a collection of scripts aimed at 
 
 This repository contains two scripts for installing the Prometheus node exporter on LXC containers in a Proxmox environment. The following is a brief overview of the scripts available:
 
-- [`lxc-node-exporter-full.sh`]([./lxc-node-exporter-full.sh](https://github.com/hotsoupp/proxmox-scripts/tree/main/lxc-node-exporter)): This script automatically installs the node exporter on all LXC containers in a Proxmox environment.
-- [`lxc-node-exporter-manual.sh`]([./lxc-node-exporter-manual.sh](https://github.com/hotsoupp/proxmox-scripts/tree/main/lxc-node-exporter)): This script prompts the user to select which LXC containers to install the [node exporter](https://github.com/prometheus/node_exporter) on. It is useful for selectively installing the node exporter on specific containers.
+- [`lxc-node-exporter-full.sh`](https://github.com/hotsoupp/proxmox-scripts/tree/main/lxc-node-exporter): This script automatically installs the [node exporter](https://github.com/prometheus/node_exporter) on all LXC containers in a Proxmox environment.
+- [`lxc-node-exporter-manual.sh`](https://github.com/hotsoupp/proxmox-scripts/tree/main/lxc-node-exporter): This script prompts the user to select which LXC containers to install the [node exporter](https://github.com/prometheus/node_exporter) on. It is useful for selectively installing the node exporter on specific containers.
 
 ## How to Use
 
