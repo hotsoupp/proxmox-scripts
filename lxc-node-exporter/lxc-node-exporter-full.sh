@@ -53,33 +53,4 @@ do
   # Copy the Node Exporter binary
   mv /tmp/node_exporter /usr/local/bin/node_exporter
 
-  # Set the owner of the Node Exporter binary to prometheus:prometheus
-  chown prometheus:prometheus /usr/local/bin/node_exporter
-
-  # Create a systemd service for Node Exporter
-  cat <<EOFS > /etc/systemd/system/node_exporter.service
-  [Unit]
-  Description=Node Exporter
-  After=network.target
-
-  [Service]
-  User=prometheus
-  Group=prometheus
-  ExecStart=/usr/local/bin/node_exporter
-
-  [Install]
-  WantedBy=multi-user.target
-  EOFS
-
-  # Reload systemd and start Node Exporter
-  systemctl daemon-reload
-  systemctl restart node_exporter
-  systemctl enable node_exporter
-
-  echo "Prometheus Node Exporter installed or updated."
-  EOF
-
-  echo "Container $container has been updated."
-done
-
-echo "All LXC containers have been updated."
+  # Set the owner of the Node Export
