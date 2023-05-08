@@ -18,13 +18,20 @@ fi
 
 # Execute multiple commands within a single pct invocation using a heredoc
 pct exec $container /bin/bash <<EOF
-# Update the container
-apt-get update && apt-get upgrade -y
+# Determine whether the container is running Debian or Ubuntu
+. /etc/os-release
+if [[ "\$ID" == "debian" || "\$ID" == "ubuntu" ]]; then
+  # Update the container
+  apt-get update && apt-get upgrade -y
 
-# Check if curl is installed, and install it if it's not
-if ! command -v curl > /dev/null 2>&1; then
-  echo "Installing curl..."
-  apt-get install -y curl
+  # Check if curl is installed, and install it if it's not
+  if ! command -v curl > /dev/null 2>&1; then
+    echo "Installing curl..."
+    apt-get install -y curl
+  fi
+else
+  echo "Unsupported distribution. Exiting."
+  exit 1
 fi
 
 # Check if the prometheus user exists, and create it if it doesn't
